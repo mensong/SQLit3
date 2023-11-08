@@ -7,7 +7,7 @@
 int main()
 {
     Database* db = SQLit3::Ins().CreateDatabase();
-	bool b = db->Open("F:\\1.db", "12345678", Database::SQLIT3_OPEN_DEFAULT);
+	bool b = db->Open("F:\\1.db", "", Database::SQLIT3_OPEN_DEFAULT);
     if (!b)
     {
         std::cout << "打开数据库失败"<< db->GetLastErrorCode()
@@ -16,6 +16,9 @@ int main()
     }
 	b = db->Execute("select 1");
 	//b = db->ResetPassword("12345678");
+
+	__int64 maxId = 0;
+	b = db->QueryInt64("SELECT MAX(id) FROM Url2FileCache", &maxId);
 
     b = db->Execute("CREATE TABLE IF NOT EXISTS \"t1\" (\"a\" TEXT,\"b\" integer,\"c\" real);");
     b = db->Execute("INSERT INTO \"main\".\"t1\" (\"a\", \"b\", \"c\") VALUES ('abc', 1, 2.0);");

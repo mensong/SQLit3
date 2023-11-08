@@ -296,7 +296,7 @@ public:
 			return false;
 				
 		SqlStatement::ReadStatus status = stmt->Next();
-		if (status != SqlStatement::SQLIT3_READ_DONE || 
+		if (status != SqlStatement::SQLIT3_READ_DONE && 
 			status != SqlStatement::SQLIT3_READ_HAS_ROW)
 		{
 			StatementFinalize(stmt);
@@ -321,7 +321,7 @@ public:
 			return false;
 
 		SqlStatement::ReadStatus status = stmt->Next();
-		if (status != SqlStatement::SQLIT3_READ_DONE ||
+		if (status != SqlStatement::SQLIT3_READ_DONE &&
 			status != SqlStatement::SQLIT3_READ_HAS_ROW)
 		{
 			StatementFinalize(stmt);
@@ -346,7 +346,7 @@ public:
 			return false;
 
 		SqlStatement::ReadStatus status = stmt->Next();
-		if (status != SqlStatement::SQLIT3_READ_DONE ||
+		if (status != SqlStatement::SQLIT3_READ_DONE &&
 			status != SqlStatement::SQLIT3_READ_HAS_ROW)
 		{
 			StatementFinalize(stmt);
@@ -371,7 +371,7 @@ public:
 			return false;
 
 		SqlStatement::ReadStatus status = stmt->Next();
-		if (status != SqlStatement::SQLIT3_READ_DONE ||
+		if (status != SqlStatement::SQLIT3_READ_DONE &&
 			status != SqlStatement::SQLIT3_READ_HAS_ROW)
 		{
 			StatementFinalize(stmt);
@@ -405,7 +405,7 @@ public:
 			return false;
 
 		SqlStatement::ReadStatus status = stmt->Next();
-		if (status != SqlStatement::SQLIT3_READ_DONE ||
+		if (status != SqlStatement::SQLIT3_READ_DONE &&
 			status != SqlStatement::SQLIT3_READ_HAS_ROW)
 		{
 			StatementFinalize(stmt);
@@ -439,7 +439,7 @@ public:
 			return false;
 
 		SqlStatement::ReadStatus status = stmt->Next();
-		if (status != SqlStatement::SQLIT3_READ_DONE ||
+		if (status != SqlStatement::SQLIT3_READ_DONE &&
 			status != SqlStatement::SQLIT3_READ_HAS_ROW)
 		{
 			StatementFinalize(stmt);
