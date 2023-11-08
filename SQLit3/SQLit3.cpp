@@ -117,18 +117,18 @@ public:
 		switch (res)
 		{
 		case SQLITE_ROW:
-			return SQLIT3_HAS_ROW;
+			return SQLIT3_READ_HAS_ROW;
 			break;
 		case SQLITE_OK:
 		case SQLITE_DONE:
-			return SQLIT3_DONE;
+			return SQLIT3_READ_DONE;
 			break;
 		case SQLITE_BUSY:
-			return SQLIT3_TIMEOUT;
+			return SQLIT3_READ_TIMEOUT;
 			break;
 		case SQLITE_ERROR:
 		default:
-			return SQLIT3_ERROR;
+			return SQLIT3_READ_ERROR;
 			break;
 		}
 	}
@@ -289,6 +289,183 @@ public:
 			delete pstmt;
 	}
 
+	virtual bool QueryInt(const char* sql, int* ret) override
+	{
+		SqlStatement* stmt = StatementPrepare(sql);
+		if (!stmt)
+			return false;
+				
+		SqlStatement::ReadStatus status = stmt->Next();
+		if (status != SqlStatement::SQLIT3_READ_DONE || 
+			status != SqlStatement::SQLIT3_READ_HAS_ROW)
+		{
+			StatementFinalize(stmt);
+			return false;
+		}
+
+		int nCount = stmt->GetColumnCount();
+		if (status == SqlStatement::SQLIT3_READ_HAS_ROW)
+		{
+			if (nCount > 0)
+				*ret = stmt->GetInt(0);
+		}
+
+		StatementFinalize(stmt);
+		return true;
+	}
+
+	virtual bool QueryInt64(const char* sql, __int64* ret) override
+	{
+		SqlStatement* stmt = StatementPrepare(sql);
+		if (!stmt)
+			return false;
+
+		SqlStatement::ReadStatus status = stmt->Next();
+		if (status != SqlStatement::SQLIT3_READ_DONE ||
+			status != SqlStatement::SQLIT3_READ_HAS_ROW)
+		{
+			StatementFinalize(stmt);
+			return false;
+		}
+
+		int nCount = stmt->GetColumnCount();
+		if (status == SqlStatement::SQLIT3_READ_HAS_ROW)
+		{
+			if (nCount > 0)
+				*ret = stmt->GetInt64(0);
+		}
+
+		StatementFinalize(stmt);
+		return true;
+	}
+
+	virtual bool QueryDouble(const char* sql, double* ret) override
+	{
+		SqlStatement* stmt = StatementPrepare(sql);
+		if (!stmt)
+			return false;
+
+		SqlStatement::ReadStatus status = stmt->Next();
+		if (status != SqlStatement::SQLIT3_READ_DONE ||
+			status != SqlStatement::SQLIT3_READ_HAS_ROW)
+		{
+			StatementFinalize(stmt);
+			return false;
+		}
+
+		int nCount = stmt->GetColumnCount();
+		if (status == SqlStatement::SQLIT3_READ_HAS_ROW)
+		{
+			if (nCount > 0)
+				*ret = stmt->GetDouble(0);
+		}
+
+		StatementFinalize(stmt);
+		return true;
+	}
+
+	virtual bool QueryText(const char* sql, const char** data, int* dataLen) override
+	{
+		SqlStatement* stmt = StatementPrepare(sql);
+		if (!stmt)
+			return false;
+
+		SqlStatement::ReadStatus status = stmt->Next();
+		if (status != SqlStatement::SQLIT3_READ_DONE ||
+			status != SqlStatement::SQLIT3_READ_HAS_ROW)
+		{
+			StatementFinalize(stmt);
+			return false;
+		}
+
+		int nCount = stmt->GetColumnCount();
+		if (status == SqlStatement::SQLIT3_READ_HAS_ROW)
+		{
+			if (nCount > 0)
+			{
+				*dataLen = 0;
+				const unsigned char* buff = stmt->GetText(0, dataLen);
+				if (*dataLen > 0)
+				{
+					m_returnBuff.resize(*dataLen, 0);
+					memcpy(&m_returnBuff[0], buff, *dataLen);
+					*data = &m_returnBuff[0];
+				}
+			}
+		}
+
+		StatementFinalize(stmt);
+		return true;
+	}
+
+	virtual bool QueryText16(const char* sql, const void** data, int* dataLen) override
+	{
+		SqlStatement* stmt = StatementPrepare(sql);
+		if (!stmt)
+			return false;
+
+		SqlStatement::ReadStatus status = stmt->Next();
+		if (status != SqlStatement::SQLIT3_READ_DONE ||
+			status != SqlStatement::SQLIT3_READ_HAS_ROW)
+		{
+			StatementFinalize(stmt);
+			return false;
+		}
+
+		int nCount = stmt->GetColumnCount();
+		if (status == SqlStatement::SQLIT3_READ_HAS_ROW)
+		{
+			if (nCount > 0)
+			{
+				*dataLen = 0;
+				const void* buff = stmt->GetText16(0, dataLen);
+				if (*dataLen > 0)
+				{
+					m_returnBuff.resize((*dataLen) * 2, 0);
+					memcpy(&m_returnBuff[0], buff, *dataLen * 2);
+					*data = &m_returnBuff[0];
+				}
+			}
+		}
+
+		StatementFinalize(stmt);
+		return true;
+	}
+
+	virtual bool QueryBlob(const char* sql, const void** data, int* dataLen) override
+	{
+		SqlStatement* stmt = StatementPrepare(sql);
+		if (!stmt)
+			return false;
+
+		SqlStatement::ReadStatus status = stmt->Next();
+		if (status != SqlStatement::SQLIT3_READ_DONE ||
+			status != SqlStatement::SQLIT3_READ_HAS_ROW)
+		{
+			StatementFinalize(stmt);
+			return false;
+		}
+
+		int nCount = stmt->GetColumnCount();
+		if (status == SqlStatement::SQLIT3_READ_HAS_ROW)
+		{
+			if (nCount > 0)
+			{
+				*dataLen = 0;
+				const void* buff = stmt->GetBlob(0, dataLen);
+				if (*dataLen > 0)
+				{
+					m_returnBuff.resize(*dataLen, 0);
+					memcpy(&m_returnBuff[0], buff, *dataLen);
+					*data = &m_returnBuff[0];
+				}
+			}
+		}
+
+		StatementFinalize(stmt);
+		return true;
+	}
+
 	virtual ErrorCode GetLastErrorCode() override
 	{
 		return (ErrorCode)sqlite3_errcode(m_db);
@@ -301,6 +478,8 @@ public:
 
 private:
 	sqlite3* m_db;
+
+	std::string m_returnBuff;
 };
 
 SQLIT3_API Database* CreateDatabase()

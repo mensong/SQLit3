@@ -7,7 +7,7 @@
 int main()
 {
     Database* db = SQLit3::Ins().CreateDatabase();
-	bool b = db->Open("F:\\1.db", "12345678", Database::SQLIT3_OPEN_READWRITE);
+	bool b = db->Open("F:\\1.db", "12345678", Database::SQLIT3_OPEN_DEFAULT);
     if (!b)
     {
         std::cout << "打开数据库失败"<< db->GetLastErrorCode()
@@ -29,7 +29,7 @@ int main()
 		b = stmt->BindDouble(idx, 2);
 
 		int colCount = stmt->GetColumnCount();
-		while (stmt->Next() == SqlStatement::SQLIT3_HAS_ROW)
+		while (stmt->Next() == SqlStatement::SQLIT3_READ_HAS_ROW)
 		{
 			for (int i = 0; i < colCount; i++)
 			{				
@@ -81,6 +81,7 @@ int main()
 
 
     b = db->Close();
+	SQLit3::Ins().DestoryDatabase(db);
 
     return 0;
 }

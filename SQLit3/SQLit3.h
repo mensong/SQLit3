@@ -34,10 +34,10 @@ public:
 
 	enum ReadStatus
 	{
-		SQLIT3_HAS_ROW = 100,	//有数据
-		SQLIT3_DONE = 101,		//已读取完毕
-		SQLIT3_TIMEOUT = 5,		//读取数据超时，数据库正在忙
-		SQLIT3_ERROR = 1,		//读取错误
+		SQLIT3_READ_HAS_ROW = 100,	//有数据
+		SQLIT3_READ_DONE = 101,		//已读取完毕
+		SQLIT3_READ_TIMEOUT = 5,		//读取数据超时，数据库正在忙
+		SQLIT3_READ_ERROR = 1,		//读取错误
 	};
 
 	typedef void(*FN_ReleaseBuff)(void* p);
@@ -159,6 +159,13 @@ public:
 	virtual __int64 GetChangeRowCount() = 0;
 	virtual __int64 GetLastInsertRowId() = 0;
 
+	virtual bool QueryInt(const char* sql, int* ret) = 0;
+	virtual bool QueryInt64(const char* sql, __int64* ret) = 0;
+	virtual bool QueryDouble(const char* sql, double* ret) = 0;
+	virtual bool QueryText(const char* sql, const char** data, int* dataLen) = 0;
+	virtual bool QueryText16(const char* sql, const void** data, int* dataLen) = 0;
+	virtual bool QueryBlob(const char* sql, const void** data, int* dataLen) = 0;
+
 	virtual ErrorCode GetLastErrorCode() = 0;
 	virtual const char* GetLastErrorMsg() = 0;
 
@@ -203,7 +210,8 @@ public:
 	{
 		char selfPath[MAX_PATH];
 		MEMORY_BASIC_INFORMATION mbi;
-		HMODULE hModule = ((::VirtualQuery(LoadLibraryFromCurrentDir, &mbi, sizeof(mbi)) != 0) ? (HMODULE)mbi.AllocationBase : NULL);
+		HMODULE hModule = ((::VirtualQuery(LoadLibraryFromCurrentDir, 
+			&mbi, sizeof(mbi)) != 0) ? (HMODULE)mbi.AllocationBase : NULL);
 		::GetModuleFileNameA(hModule, selfPath, MAX_PATH);
 		std::string moduleDir(selfPath);
 		size_t idx = moduleDir.find_last_of('\\');
