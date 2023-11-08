@@ -32,27 +32,25 @@ public:
 		SQLIT3_ENCODING_UTF16_ALIGNED = 8,    /* sqlite3_create_collation only */
 	};
 
-	enum ReadStatus
+	enum ExecStatus
 	{
-		SQLIT3_READ_HAS_ROW = 100,	//有数据
-		SQLIT3_READ_DONE = 101,		//已读取完毕
-		SQLIT3_READ_TIMEOUT = 5,		//读取数据超时，数据库正在忙
-		SQLIT3_READ_ERROR = 1,		//读取错误
+		SQLIT3_EXEC_HAS_ROW = 100,	//有数据
+		SQLIT3_EXEC_DONE = 101,		//已读取完毕
+		SQLIT3_EXEC_TIMEOUT = 5,		//读取数据超时，数据库正在忙
+		SQLIT3_EXEC_ERROR = 1,		//读取错误
 	};
 
-	typedef void(*FN_ReleaseBuff)(void* p);
-
 public:
-	virtual bool BindBlob(int paramIdx, const void* data, int dataLen, FN_ReleaseBuff dfn = NULL) = 0;
-	virtual bool BindBlob64(int paramIdx, const void* data, __int64 dataLen, FN_ReleaseBuff dfn = NULL) = 0;
+	virtual bool BindBlob(int paramIdx, const void* data, int dataLen) = 0;
+	virtual bool BindBlob64(int paramIdx, const void* data, __int64 dataLen) = 0;
 	virtual bool BindDouble(int paramIdx, double v) = 0;
 	virtual bool BindInt(int paramIdx, int v) = 0;
 	virtual bool BindInt64(int paramIdx, __int64 v) = 0;
 	virtual bool BindNull(int paramIdx) = 0;
-	virtual bool BindText(int paramIdx, const char* text, int textLen, FN_ReleaseBuff dfn = NULL) = 0;
-	virtual bool BindText16(int paramIdx, const void* text, int textLen, FN_ReleaseBuff dfn = NULL) = 0;
-	virtual bool BindText64(int paramIdx, const char* text, __int64 textLen, TextEncoding encoding, FN_ReleaseBuff dfn = NULL) = 0;
-	virtual bool BindPointer(int paramIdx, void* pointer, const char* valueType/*="ValueList"*/, FN_ReleaseBuff dfn = NULL) = 0;
+	virtual bool BindText(int paramIdx, const char* text, int textLen) = 0;
+	virtual bool BindText16(int paramIdx, const void* text, int textLen) = 0;
+	virtual bool BindText64(int paramIdx, const char* text, __int64 textLen, TextEncoding encoding) = 0;
+	virtual bool BindPointer(int paramIdx, void* pointer, const char* valueType/*="ValueList"*/) = 0;
 	virtual bool BindZeroBlob(int paramIdx, int n) = 0;
 	virtual bool BindZeroBlob64(int paramIdx, __int64 n) = 0;
 	virtual int GetParamIndexByName(const char* paramName) = 0;
@@ -60,7 +58,7 @@ public:
 
 	virtual int GetColumnCount() = 0;
 	virtual const char* GetColumnName(int iCol) = 0;
-	virtual ReadStatus Next(int timeout = 0) = 0;
+	virtual ExecStatus Next(int timeout = 0) = 0;
 	virtual void Reset() = 0;
 
 	virtual SqlValueType GetType(int iCol) = 0;

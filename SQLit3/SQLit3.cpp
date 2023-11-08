@@ -18,14 +18,14 @@ public:
 			sqlite3_finalize(m_stmt);
 	}
 	
-	virtual bool BindBlob(int paramIdx, const void* data, int dataLen, FN_ReleaseBuff dfn = NULL) override
+	virtual bool BindBlob(int paramIdx, const void* data, int dataLen) override
 	{
-		return sqlite3_bind_blob(m_stmt, paramIdx + 1, data, dataLen, dfn) == SQLITE_OK;
+		return sqlite3_bind_blob(m_stmt, paramIdx + 1, data, dataLen, SQLITE_STATIC) == SQLITE_OK;
 	}
 
-	virtual bool BindBlob64(int paramIdx, const void* data, __int64 dataLen, FN_ReleaseBuff dfn = NULL) override
+	virtual bool BindBlob64(int paramIdx, const void* data, __int64 dataLen) override
 	{
-		return sqlite3_bind_blob64(m_stmt, paramIdx + 1, data, dataLen, dfn) == SQLITE_OK;
+		return sqlite3_bind_blob64(m_stmt, paramIdx + 1, data, dataLen, SQLITE_STATIC) == SQLITE_OK;
 	}
 
 	virtual bool BindDouble(int paramIdx, double v) override
@@ -48,24 +48,24 @@ public:
 		return sqlite3_bind_null(m_stmt, paramIdx + 1) == SQLITE_OK;
 	}
 
-	virtual bool BindText(int paramIdx, const char* text, int textLen, FN_ReleaseBuff dfn = NULL) override
+	virtual bool BindText(int paramIdx, const char* text, int textLen) override
 	{
-		return sqlite3_bind_text(m_stmt, paramIdx + 1, text, textLen, dfn) == SQLITE_OK;
+		return sqlite3_bind_text(m_stmt, paramIdx + 1, text, textLen, SQLITE_STATIC) == SQLITE_OK;
 	}
 
-	virtual bool BindText16(int paramIdx, const void* text, int textLen, FN_ReleaseBuff dfn = NULL) override
+	virtual bool BindText16(int paramIdx, const void* text, int textLen) override
 	{
-		return sqlite3_bind_text16(m_stmt, paramIdx + 1, text, textLen, dfn) == SQLITE_OK;
+		return sqlite3_bind_text16(m_stmt, paramIdx + 1, text, textLen, SQLITE_STATIC) == SQLITE_OK;
 	}
 
-	virtual bool BindText64(int paramIdx, const char* text, __int64 textLen, TextEncoding encoding, FN_ReleaseBuff dfn = NULL) override
+	virtual bool BindText64(int paramIdx, const char* text, __int64 textLen, TextEncoding encoding) override
 	{
-		return sqlite3_bind_text64(m_stmt, paramIdx + 1, text, textLen, dfn, encoding) == SQLITE_OK;
+		return sqlite3_bind_text64(m_stmt, paramIdx + 1, text, textLen, SQLITE_STATIC, encoding) == SQLITE_OK;
 	}
 
-	virtual bool BindPointer(int paramIdx, void* pointer, const char* valueType, FN_ReleaseBuff dfn = NULL) override
+	virtual bool BindPointer(int paramIdx, void* pointer, const char* valueType) override
 	{
-		return sqlite3_bind_pointer(m_stmt, paramIdx + 1, pointer, valueType, dfn) == SQLITE_OK;
+		return sqlite3_bind_pointer(m_stmt, paramIdx + 1, pointer, valueType, SQLITE_STATIC) == SQLITE_OK;
 	}
 
 	virtual bool BindZeroBlob(int paramIdx, int n) override
@@ -98,7 +98,7 @@ public:
 		return sqlite3_column_name(m_stmt, iCol);
 	}
 
-	virtual ReadStatus Next(int timeout = 0) override
+	virtual ExecStatus Next(int timeout = 0) override
 	{
 		int res = sqlite3_step(m_stmt);
 
@@ -117,18 +117,18 @@ public:
 		switch (res)
 		{
 		case SQLITE_ROW:
-			return SQLIT3_READ_HAS_ROW;
+			return SQLIT3_EXEC_HAS_ROW;
 			break;
 		case SQLITE_OK:
 		case SQLITE_DONE:
-			return SQLIT3_READ_DONE;
+			return SQLIT3_EXEC_DONE;
 			break;
 		case SQLITE_BUSY:
-			return SQLIT3_READ_TIMEOUT;
+			return SQLIT3_EXEC_TIMEOUT;
 			break;
 		case SQLITE_ERROR:
 		default:
-			return SQLIT3_READ_ERROR;
+			return SQLIT3_EXEC_ERROR;
 			break;
 		}
 	}
@@ -146,6 +146,7 @@ public:
 
 	virtual const void* GetBlob(int iCol, int* size) override
 	{
+		*size = sqlite3_column_bytes(m_stmt, iCol);
 		return sqlite3_column_blob(m_stmt, iCol);
 	}
 
@@ -295,16 +296,16 @@ public:
 		if (!stmt)
 			return false;
 				
-		SqlStatement::ReadStatus status = stmt->Next();
-		if (status != SqlStatement::SQLIT3_READ_DONE && 
-			status != SqlStatement::SQLIT3_READ_HAS_ROW)
+		SqlStatement::ExecStatus status = stmt->Next();
+		if (status != SqlStatement::SQLIT3_EXEC_DONE && 
+			status != SqlStatement::SQLIT3_EXEC_HAS_ROW)
 		{
 			StatementFinalize(stmt);
 			return false;
 		}
 
 		int nCount = stmt->GetColumnCount();
-		if (status == SqlStatement::SQLIT3_READ_HAS_ROW)
+		if (status == SqlStatement::SQLIT3_EXEC_HAS_ROW)
 		{
 			if (nCount > 0)
 				*ret = stmt->GetInt(0);
@@ -320,16 +321,16 @@ public:
 		if (!stmt)
 			return false;
 
-		SqlStatement::ReadStatus status = stmt->Next();
-		if (status != SqlStatement::SQLIT3_READ_DONE &&
-			status != SqlStatement::SQLIT3_READ_HAS_ROW)
+		SqlStatement::ExecStatus status = stmt->Next();
+		if (status != SqlStatement::SQLIT3_EXEC_DONE &&
+			status != SqlStatement::SQLIT3_EXEC_HAS_ROW)
 		{
 			StatementFinalize(stmt);
 			return false;
 		}
 
 		int nCount = stmt->GetColumnCount();
-		if (status == SqlStatement::SQLIT3_READ_HAS_ROW)
+		if (status == SqlStatement::SQLIT3_EXEC_HAS_ROW)
 		{
 			if (nCount > 0)
 				*ret = stmt->GetInt64(0);
@@ -345,16 +346,16 @@ public:
 		if (!stmt)
 			return false;
 
-		SqlStatement::ReadStatus status = stmt->Next();
-		if (status != SqlStatement::SQLIT3_READ_DONE &&
-			status != SqlStatement::SQLIT3_READ_HAS_ROW)
+		SqlStatement::ExecStatus status = stmt->Next();
+		if (status != SqlStatement::SQLIT3_EXEC_DONE &&
+			status != SqlStatement::SQLIT3_EXEC_HAS_ROW)
 		{
 			StatementFinalize(stmt);
 			return false;
 		}
 
 		int nCount = stmt->GetColumnCount();
-		if (status == SqlStatement::SQLIT3_READ_HAS_ROW)
+		if (status == SqlStatement::SQLIT3_EXEC_HAS_ROW)
 		{
 			if (nCount > 0)
 				*ret = stmt->GetDouble(0);
@@ -370,16 +371,16 @@ public:
 		if (!stmt)
 			return false;
 
-		SqlStatement::ReadStatus status = stmt->Next();
-		if (status != SqlStatement::SQLIT3_READ_DONE &&
-			status != SqlStatement::SQLIT3_READ_HAS_ROW)
+		SqlStatement::ExecStatus status = stmt->Next();
+		if (status != SqlStatement::SQLIT3_EXEC_DONE &&
+			status != SqlStatement::SQLIT3_EXEC_HAS_ROW)
 		{
 			StatementFinalize(stmt);
 			return false;
 		}
 
 		int nCount = stmt->GetColumnCount();
-		if (status == SqlStatement::SQLIT3_READ_HAS_ROW)
+		if (status == SqlStatement::SQLIT3_EXEC_HAS_ROW)
 		{
 			if (nCount > 0)
 			{
@@ -404,16 +405,16 @@ public:
 		if (!stmt)
 			return false;
 
-		SqlStatement::ReadStatus status = stmt->Next();
-		if (status != SqlStatement::SQLIT3_READ_DONE &&
-			status != SqlStatement::SQLIT3_READ_HAS_ROW)
+		SqlStatement::ExecStatus status = stmt->Next();
+		if (status != SqlStatement::SQLIT3_EXEC_DONE &&
+			status != SqlStatement::SQLIT3_EXEC_HAS_ROW)
 		{
 			StatementFinalize(stmt);
 			return false;
 		}
 
 		int nCount = stmt->GetColumnCount();
-		if (status == SqlStatement::SQLIT3_READ_HAS_ROW)
+		if (status == SqlStatement::SQLIT3_EXEC_HAS_ROW)
 		{
 			if (nCount > 0)
 			{
@@ -438,16 +439,16 @@ public:
 		if (!stmt)
 			return false;
 
-		SqlStatement::ReadStatus status = stmt->Next();
-		if (status != SqlStatement::SQLIT3_READ_DONE &&
-			status != SqlStatement::SQLIT3_READ_HAS_ROW)
+		SqlStatement::ExecStatus status = stmt->Next();
+		if (status != SqlStatement::SQLIT3_EXEC_DONE &&
+			status != SqlStatement::SQLIT3_EXEC_HAS_ROW)
 		{
 			StatementFinalize(stmt);
 			return false;
 		}
 
 		int nCount = stmt->GetColumnCount();
-		if (status == SqlStatement::SQLIT3_READ_HAS_ROW)
+		if (status == SqlStatement::SQLIT3_EXEC_HAS_ROW)
 		{
 			if (nCount > 0)
 			{
