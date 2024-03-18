@@ -28,15 +28,17 @@ public:
 		SQLIT3_ENCODING_UTF16LE = 2,    /* IMP: R-03371-37637 */
 		SQLIT3_ENCODING_UTF16BE = 3,    /* IMP: R-51971-34154 */
 		SQLIT3_ENCODING_UTF16   = 4,    /* Use native byte order */
-		SQLIT3_ENCODING_ANY     = 5,    /* Deprecated */
+		//SQLIT3_ENCODING_ANY     = 5,    /* Deprecated */
 		SQLIT3_ENCODING_UTF16_ALIGNED = 8,    /* sqlite3_create_collation only */
 	};
 
 	enum ExecStatus
 	{
 		SQLIT3_EXEC_HAS_ROW = 100,	//有数据
+
 		SQLIT3_EXEC_DONE = 101,		//已读取完毕
-		SQLIT3_EXEC_TIMEOUT = 5,		//读取数据超时，数据库正在忙
+
+		SQLIT3_EXEC_TIMEOUT = 5,	//读取数据超时，数据库正在忙
 		SQLIT3_EXEC_ERROR = 1,		//读取错误
 	};
 
