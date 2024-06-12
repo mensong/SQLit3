@@ -55,7 +55,7 @@ public:
 	virtual bool BindPointer(int paramIdx, void* pointer, const char* valueType/*="ValueList"*/) = 0;
 	virtual bool BindZeroBlob(int paramIdx, int n) = 0;
 	virtual bool BindZeroBlob64(int paramIdx, __int64 n) = 0;
-	virtual int GetParamIndexByName(const char* paramName) = 0;
+	virtual int GetParamIndexByName(const char* paramName) = 0;//Ê§°Ü·µ»ØÐ¡ÓÚ0
 	virtual bool ClearBindings() = 0;
 
 	virtual int GetColumnCount() = 0;
