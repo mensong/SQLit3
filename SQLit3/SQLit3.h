@@ -55,6 +55,12 @@ public:
 	virtual bool BindPointer(int paramIdx, void* pointer, const char* valueType/*="ValueList"*/) = 0;
 	virtual bool BindZeroBlob(int paramIdx, int n) = 0;
 	virtual bool BindZeroBlob64(int paramIdx, __int64 n) = 0;
+	//由占位符名称获得对应序号
+	//占位符可以为：
+	//? 匿名占位符
+	//?N 直接指名索引的匿名占位符，其中N代表这个参数的索引，如：?1 ?2
+	//:Name或@Name或$Name 带名称的占位符
+	//paramName - 只能为 :Name或@Name或$Name（需要带上前面那个符号）
 	virtual int GetParamIndexByName(const char* paramName) = 0;//失败返回小于0
 	virtual bool ClearBindings() = 0;
 
