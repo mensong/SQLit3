@@ -23,11 +23,11 @@ int test_normal()
 	__int64 countRows = 0;
 	b = db->QueryInt64("SELECT COUNT(1) FROM t1", &countRows);
 
-	SqlStatement* stmt = db->StatementPrepare("SELECT a,c FROM t1 where b=? or b=$cv");
+	SqlStatement* stmt = db->StatementPrepare("SELECT a,c FROM t1 where b=? or b=$_v");
 	if (stmt)
 	{
 		b = stmt->BindInt(0, 1);
-		int idx = stmt->GetParamIndexByName("$cv");
+		int idx = stmt->GetParamIndexByName("$_v");
 		b = stmt->BindDouble(idx, 2);
 
 		int colCount = stmt->GetColumnCount();

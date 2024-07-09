@@ -474,7 +474,8 @@ public:
 
 	virtual const char* GetLastErrorMsg() override
 	{
-		return sqlite3_errmsg(m_db);
+		const char* msg =  sqlite3_errmsg(m_db);
+		return msg;
 	}
 
 private:
@@ -492,6 +493,6 @@ SQLIT3_API void DestoryDatabase(Database* db)
 {
 	if (!db)
 		return;
-	delete db;
+	delete (DatabaseImp*)db;
 }
 
