@@ -1,6 +1,67 @@
 #include "pch.h"
 #include "SQLit3.h"
 #include <sqlite3mc.h>
+#include <locale.h>
+
+//ansi 转 Unicode
+bool Ansi2Unicode(std::wstring& out, const std::string& in, const char* locale = "")
+{
+	setlocale(LC_ALL, locale);
+
+	int widesize = MultiByteToWideChar(CP_ACP, 0, in.c_str(), in.size(), NULL, 0);
+	if (widesize <= 0)
+	{
+		//::GetLastError();
+		setlocale(LC_ALL, "");
+		return false;
+	}
+
+	out.resize(widesize);
+	int convresult = MultiByteToWideChar(CP_ACP, 0, in.c_str(), in.size(), &out[0], widesize);
+	if (convresult <= 0)
+	{
+		//::GetLastError();
+		setlocale(LC_ALL, "");
+		return false;
+	}
+
+	setlocale(LC_ALL, "");
+	return true;
+}
+
+//Unicode 转 UTF8
+bool Unicode2Utf8(std::string& out, const std::wstring& in, const char* locale = "")
+{
+	setlocale(LC_ALL, locale);
+
+	int len = WideCharToMultiByte(CP_UTF8, 0, &in[0], in.size(), NULL, 0, NULL, NULL);
+	if (len <= 0)
+	{
+		//::GetLastError();
+		setlocale(LC_ALL, "");
+		return false;
+	}
+
+	out.resize(len);
+	len = WideCharToMultiByte(CP_UTF8, 0, &in[0], in.size(), &out[0], len, NULL, NULL);
+	if (len <= 0)
+	{
+		//::GetLastError();
+		setlocale(LC_ALL, "");
+		return false;
+	}
+
+	setlocale(LC_ALL, "");
+	return true;
+}
+
+bool Ansi2Utf8(std::string& out, const std::string& in, const char* locale = "")
+{
+	std::wstring ws;
+	if (!Ansi2Unicode(ws, in, locale))
+		return false;
+	return Unicode2Utf8(out, ws.c_str(), locale);
+}
 
 class SqlStatementImp
 	: public SqlStatement
@@ -203,7 +264,12 @@ public:
 	{
 		Close();
 
-		int res = sqlite3_open_v2(dbFile, &m_db, flag, NULL);
+		//文件路径转为utf8编码，否则不正确
+		std::string uDbFile = dbFile;
+		std::string sTmp;
+		if (Ansi2Utf8(sTmp, dbFile))
+			uDbFile = sTmp;
+		int res = sqlite3_open_v2(uDbFile.c_str(), &m_db, flag, NULL);
 		if (res != SQLITE_OK)
 		{
 			Close();
