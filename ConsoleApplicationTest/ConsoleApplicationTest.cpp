@@ -86,6 +86,9 @@ int test_normal()
 
 	b = db->Close();
 	SQLit3::Ins().DestoryDatabase(db);
+
+	DeleteFileA("1.db");
+
 	return 0;
 }
 
@@ -142,6 +145,9 @@ int test_blob(const char* exefile)
 
 	b = db->Close();
 	SQLit3::Ins().DestoryDatabase(db);
+
+	DeleteFileA("2.db");
+
 	return 0;
 }
 

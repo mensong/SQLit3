@@ -1,0 +1,3 @@
+[submodule "SQLite3-Encryption"]
+	path = SQLite3-Encryption
+	url = https://github.com/mensong/SQLite3-Encryption.git

@@ -353,7 +353,7 @@ public:
 	virtual void StatementFinalize(SqlStatement* pstmt) override
 	{
 		if (pstmt)
-			delete pstmt;
+			delete (SqlStatementImp*)pstmt;
 	}
 
 	virtual bool QueryInt(const char* sql, int* ret) override
