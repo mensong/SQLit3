@@ -173,7 +173,9 @@ public:
 	virtual bool QueryBlob(const char* sql, const void** data, int* dataLen) = 0;
 
 	virtual ErrorCode GetLastErrorCode() = 0;
+	virtual const char* GetErrorMsgByCode(ErrorCode code) = 0;
 	virtual const char* GetLastErrorMsg() = 0;
+	virtual int GetLastErrorPosition() = 0;
 
 	virtual bool Close() = 0;
 };

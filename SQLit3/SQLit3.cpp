@@ -538,10 +538,20 @@ public:
 		return (ErrorCode)sqlite3_errcode(m_db);
 	}
 
+	virtual const char* GetErrorMsgByCode(ErrorCode code) override
+	{
+		return sqlite3_errstr(code);
+	}
+
 	virtual const char* GetLastErrorMsg() override
 	{
 		const char* msg =  sqlite3_errmsg(m_db);
 		return msg;
+	}
+
+	virtual int GetLastErrorPosition() override
+	{
+		return sqlite3_error_offset(m_db);
 	}
 
 private:

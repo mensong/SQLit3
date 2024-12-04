@@ -126,6 +126,7 @@ void CSQLCommanderDlg::OnBnClickedBtnConnect()
 	m_editDbFile.GetWindowText(dbFile);
 	if (dbFile.IsEmpty())
 		return;
+
 	CString dbPwd;
 	m_editDbPwd.GetWindowText(dbPwd);
 
@@ -133,21 +134,29 @@ void CSQLCommanderDlg::OnBnClickedBtnConnect()
 	{
 		SQLit3::Ins().DestoryDatabase(m_db);
 		m_db = NULL;
-	}
-
-	m_db = SQLit3::Ins().CreateDatabase();
-	bool b = m_db->Open(CW2A(dbFile), CW2A(dbPwd));
-	if (!b)
-	{
-		SQLit3::Ins().DestoryDatabase(m_db);
-		m_db = NULL;
-		
-		m_editExeAffect.SetWindowText(_T("连接数据库失败"));
+		m_editExeAffect.SetWindowText(_T("已断开数据库连接"));
 	}
 	else
 	{
-		m_editExeAffect.SetWindowText(_T("连接数据库成功"));
+		m_db = SQLit3::Ins().CreateDatabase();
+		bool b = m_db->Open(CW2A(dbFile), CW2A(dbPwd));
+		if (!b)
+		{
+			SQLit3::Ins().DestoryDatabase(m_db);
+			m_db = NULL;
+
+			m_editExeAffect.SetWindowText(_T("连接数据库失败"));
+		}
+		else
+		{
+			m_editExeAffect.SetWindowText(_T("连接数据库成功"));
+		}
 	}
+
+	if (m_db)
+		m_btnConnect.SetWindowText(_T("断开连接"));
+	else
+		m_btnConnect.SetWindowText(_T("连接数据库"));
 }
 
 void CSQLCommanderDlg::OnBnClickedBtnExecute()
@@ -170,7 +179,12 @@ void CSQLCommanderDlg::OnBnClickedBtnExecute()
 	//bool b = m_db->Execute(CW2A(sql));
 	SqlStatement* stmt = m_db->StatementPrepare(CW2A(sql));
 	if (!stmt)
+	{
+		std::string errMsg2 = m_db->GetLastErrorMsg();
+		CString msg = CA2W(errMsg2.c_str());
+		m_editExeAffect.SetWindowText(msg);
 		return;
+	}
 
 	int colCount = stmt->GetColumnCount();
 	for (int i = 0; i < colCount; i++)
