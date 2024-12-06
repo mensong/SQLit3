@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include "..\SQLit3\SQLit3.h"
+#include "ThreadPool.h"
 
 int test_normal()
 {
@@ -151,10 +152,183 @@ int test_blob(const char* exefile)
 	return 0;
 }
 
+std::string test_a =
+"auto stmt = db->StatementPrepare(INSERT INTO tab(a, b, c) VALUES($a, $b, $c); );\n"
+"auto stmt = db->StatementPrepare(INSERT INTO tab(a, b, c) VALUES($a, $b, $c); );\n"
+"auto stmt = db->StatementPrepare(INSERT INTO tab(a, b, c) VALUES($a, $b, $c); );\n"
+"auto stmt = db->StatementPrepare(INSERT INTO tab(a, b, c) VALUES($a, $b, $c); );\n"
+"auto stmt = db->StatementPrepare(INSERT INTO tab(a, b, c) VALUES($a, $b, $c); );\n"
+"auto stmt = db->StatementPrepare(INSERT INTO tab(a, b, c) VALUES($a, $b, $c); );\n"
+"auto stmt = db->StatementPrepare(INSERT INTO tab(a, b, c) VALUES($a, $b, $c); );\n"
+"auto stmt = db->StatementPrepare(INSERT INTO tab(a, b, c) VALUES($a, $b, $c); );\n"
+"auto stmt = db->StatementPrepare(INSERT INTO tab(a, b, c) VALUES($a, $b, $c); );\n"
+"auto stmt = db->StatementPrepare(INSERT INTO tab(a, b, c) VALUES($a, $b, $c); );\n"
+"auto stmt = db->StatementPrepare(INSERT INTO tab(a, b, c) VALUES($a, $b, $c); );\n"
+"auto stmt = db->StatementPrepare(INSERT INTO tab(a, b, c) VALUES($a, $b, $c); );\n"
+;
+int test_b = 123456;
+double test_c = 123.456;
+int insertCount = 10000;
+SqlStatement::ExecStatus __test_stmt(Database* db)
+{
+	auto stmt = db->StatementPrepare("INSERT INTO tab (a, b, c) VALUES ($a, $b, $c);");
+	if (stmt)
+	{
+		int pidx = stmt->GetParamIndexByName("$a");
+		stmt->BindText(pidx, test_a.c_str(), test_a.size());
+
+		pidx = stmt->GetParamIndexByName("$b");
+		stmt->BindInt(pidx, test_b);
+
+		pidx = stmt->GetParamIndexByName("$c");
+		stmt->BindDouble(pidx, test_c);
+
+		auto res = stmt->Next(-1);
+		if (res != SqlStatement::SQLIT3_EXEC_DONE)
+		{
+			std::cout << "Insert error: " << (int)res << std::endl;
+		}
+
+		db->StatementFinalize(stmt);
+
+		return res;
+	}
+
+	return SqlStatement::SQLIT3_EXEC_ERROR;
+}
+
+
+void _multiThreadInsert()
+{
+	Database* db = SQLit3::Ins().CreateDatabase();
+	bool b = db->Open("testMultiThreadInserts.db", "", 
+		(Database::SqliteOpenFlag)(
+			Database::SQLIT3_OPEN_DEFAULT | 
+			Database::SQLIT3_OPEN_FULLMUTEX
+		)
+	);
+	
+	__test_stmt(db);
+
+	db->Close();
+	SQLit3::Ins().DestoryDatabase(db);
+
+	//std::cout << '.';
+}
+/*多线程插入数据会丢失，不建议多线程使用sqlite*/
+void testMultiThreadInserts()
+{
+	remove("testMultiThreadInserts.db");
+	Database* db = SQLit3::Ins().CreateDatabase();
+	bool b = db->Open("testMultiThreadInserts.db", "", Database::SQLIT3_OPEN_DEFAULT);
+	db->Execute("CREATE TABLE IF NOT EXISTS tab (a TEXT,b integer,c real);");
+	db->Close();
+	SQLit3::Ins().DestoryDatabase(db);
+
+	tp::ThreadPool pool;
+
+	DWORD t1 = ::GetTickCount();
+
+	for (size_t i = 0; i < insertCount; i++)
+	{
+		pool.addJob([]()
+		{
+			_multiThreadInsert();
+		});
+	}
+
+	pool.joinAll();
+
+	DWORD t = ::GetTickCount() -  t1;
+
+	{
+		Database* db = SQLit3::Ins().CreateDatabase();
+		bool b = db->Open("testMultiThreadInserts.db", "", Database::SQLIT3_OPEN_DEFAULT);
+		
+		auto stmt = db->StatementPrepare("SELECT COUNT(1) FROM tab;");
+		if (stmt)
+		{
+			stmt->Next();
+			int insertedCount = stmt->GetInt(0);
+			std::cout << "testMultiThread inserted " << insertedCount << " 条数据 耗时 " << t << " ms" << std::endl;
+
+			db->StatementFinalize(stmt);
+		}
+
+		db->Close();
+		SQLit3::Ins().DestoryDatabase(db);
+	}
+}
+
+void testNormalInserts()
+{
+	remove("testNormalInserts.db");
+	Database* db = SQLit3::Ins().CreateDatabase();
+	bool b = db->Open("testNormalInserts.db", "", Database::SQLIT3_OPEN_DEFAULT);
+	db->Execute("CREATE TABLE IF NOT EXISTS tab (a TEXT,b integer,c real);");
+
+	DWORD t1 = ::GetTickCount();
+
+	for (size_t i = 0; i < insertCount; i++)
+	{
+		__test_stmt(db);
+	}
+
+	DWORD t = ::GetTickCount() - t1;
+	auto stmt = db->StatementPrepare("SELECT COUNT(1) FROM tab;");
+	if (stmt)
+	{
+		stmt->Next();
+		int insertedCount = stmt->GetInt(0);
+		std::cout << "testNormalInserts inserted " << insertedCount << " 条数据 耗时 " << t << " ms" << std::endl;
+
+		db->StatementFinalize(stmt);
+	}
+
+	db->Close();
+	SQLit3::Ins().DestoryDatabase(db);
+}
+
+
+void testTranscationInserts()
+{
+	remove("testTranscationInserts.db");
+	Database* db = SQLit3::Ins().CreateDatabase();
+	bool b = db->Open("testTranscationInserts.db", "", Database::SQLIT3_OPEN_DEFAULT);
+	db->Execute("CREATE TABLE IF NOT EXISTS tab (a TEXT,b integer,c real);");
+
+	DWORD t1 = ::GetTickCount();
+
+	db->Execute("BEGIN TRANSACTION;");
+	for (size_t i = 0; i < insertCount; i++)
+	{
+		__test_stmt(db);
+	}
+	db->Execute("COMMIT;");
+
+	DWORD t = ::GetTickCount() - t1;
+	auto stmt = db->StatementPrepare("SELECT COUNT(1) FROM tab;");
+	if (stmt)
+	{
+		stmt->Next();
+		int insertedCount = stmt->GetInt(0);
+		std::cout << "testTranscationInserts inserted " << insertedCount << " 条数据 耗时 " << t << " ms" << std::endl;
+
+		db->StatementFinalize(stmt);
+	}
+
+	db->Close();
+	SQLit3::Ins().DestoryDatabase(db);
+}
+
+
 int main(int argc, char** argv)
 {
 	test_normal();
 	test_blob(argv[0]);
 
+	testMultiThreadInserts();
+	testNormalInserts();
+	testTranscationInserts();
     return 0;
 }
