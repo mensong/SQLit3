@@ -66,7 +66,11 @@ public:
 
 	virtual int GetColumnCount() = 0;
 	virtual const char* GetColumnName(int iCol) = 0;
+
+	//执行一个步骤
+	// timeout为超时时间。0 不应用超时，直接返回；-1 一直等待
 	virtual ExecStatus Next(int timeout = 0) = 0;
+
 	virtual void Reset() = 0;
 
 	virtual SqlValueType GetType(int iCol) = 0;

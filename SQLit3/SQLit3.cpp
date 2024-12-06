@@ -171,7 +171,7 @@ public:
 				res = sqlite3_step(m_stmt);
 				if (res != SQLITE_BUSY)
 					break;
-				Sleep(100);
+				Sleep(10);
 			}
 		}
 
