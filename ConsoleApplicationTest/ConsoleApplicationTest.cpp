@@ -81,6 +81,11 @@ int test_normal()
 
 			std::cout << std::endl;
 		}
+
+		//测试辅助函数
+		std::vector<std::map<std::string, std::string>> outRows;
+		stmt->ToStringRows(outRows);
+
 		db->StatementFinalize(stmt);
 	}
 

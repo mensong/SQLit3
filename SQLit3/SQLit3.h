@@ -5,6 +5,12 @@
 #include <string>
 #include <stdint.h>
 
+#pragma region 辅助函数
+#include <vector>
+#include <map>
+#include <sstream>
+#pragma endregion
+
 #ifdef SQLIT3_EXPORTS
 #define SQLIT3_API extern "C" __declspec(dllexport)
 #else
@@ -80,6 +86,69 @@ public:
 	virtual __int64 GetInt64(int iCol) = 0;
 	virtual const unsigned char* GetText(int iCol, int* size) = 0;
 	virtual const void* GetText16(int iCol, int* size) = 0;
+
+#pragma region 辅助函数
+public:
+	//获得行数据，值统一转化为字符串
+	inline void ToStringRows(std::vector<std::map<std::string, std::string>>& outRows)
+	{
+		int colCount = GetColumnCount();
+		while (Next() == SqlStatement::SQLIT3_EXEC_HAS_ROW)
+		{
+			std::map<std::string, std::string> row;
+
+			for (int i = 0; i < colCount; i++)
+			{
+				const char* columnName = GetColumnName(i);
+				std::stringstream columnValue;
+				auto type = GetType(i);
+				switch (type)
+				{
+				case SqlStatement::SQLIT3_VALUE_INTEGER:
+				{
+					__int64 v = GetInt64(i);
+					columnValue << v;
+					break;
+				}
+				case SqlStatement::SQLIT3_VALUE_FLOAT:
+				{
+					double v = GetDouble(i);
+					columnValue << v;
+					break;
+				}
+				case SqlStatement::SQLIT3_VALUE_BLOB:
+				{
+					int dataLen = 0;
+					const void* data = GetBlob(i, &dataLen);
+					char* pBuf = new char[dataLen + 1];
+					memcpy(pBuf, data, dataLen);
+					pBuf[dataLen] = '\0';
+					columnValue << std::string(pBuf, dataLen);
+					delete[] pBuf;
+					break;
+				}
+				case SqlStatement::SQLIT3_VALUE_NULL:
+				{
+					columnValue << "<NULL>";
+					break;
+				}
+				case SqlStatement::SQLIT3_VALUE_TEXT:
+				default:
+				{
+					int dataLen = 0;
+					auto data = GetText(i, &dataLen);
+					columnValue << data;
+					break;
+				}
+				}
+
+				row[columnName] = columnValue.str();
+			}
+
+			outRows.push_back(row);
+		}
+	}
+#pragma endregion
 };
 
 class Database
@@ -182,6 +251,23 @@ public:
 	virtual int GetLastErrorPosition() = 0;
 
 	virtual bool Close() = 0;
+
+#pragma region 辅助函数
+public:
+	//获得行数据，值统一转化为字符串
+	inline bool QueryRowsAsString(const char* sql, std::vector<std::map<std::string, std::string>>& outRows)
+	{
+		auto stmt = StatementPrepare(sql);
+		if (!stmt)
+			return false;
+		
+		stmt->ToStringRows(outRows);
+
+		StatementFinalize(stmt);
+
+		return true;
+	}
+#pragma endregion
 };
 
 SQLIT3_API Database* CreateDatabase();
