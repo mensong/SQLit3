@@ -73,12 +73,16 @@ public:
 	{
 		int pid = GetParamIndexByName(paramName);
 		if (pid < 0) return false;
+		if (!data)
+			return BindNull(paramName);
 		return BindBlob(pid, data, dataLen);
 	}
 	inline bool BindBlob64(const char* paramName, const void* data, __int64 dataLen)
 	{
 		int pid = GetParamIndexByName(paramName);
 		if (pid < 0) return false;
+		if (!data)
+			return BindNull(paramName);
 		return BindBlob64(pid, data, dataLen);
 	}
 	inline bool BindDouble(const char* paramName, double v)
@@ -109,6 +113,8 @@ public:
 	{
 		int pid = GetParamIndexByName(paramName);
 		if (pid < 0) return false;
+		if (!text)
+			return BindNull(paramName);
 		if (textLen < 0)
 			textLen = strlen(text);
 		return BindText(pid, text, textLen);
@@ -117,18 +123,24 @@ public:
 	{
 		int pid = GetParamIndexByName(paramName);
 		if (pid < 0) return false;
+		if (!text)
+			return BindNull(paramName);
 		return BindText16(pid, text, textLen);
 	}
 	inline bool BindText64(const char* paramName, const char* text, __int64 textLen, TextEncoding encoding)
 	{
 		int pid = GetParamIndexByName(paramName);
 		if (pid < 0) return false;
+		if (!text)
+			return BindNull(paramName);
 		return BindText64(pid, text, textLen, encoding);
 	}
 	inline bool BindPointer(const char* paramName, void* pointer, const char* valueType/*="ValueList"*/)
 	{
 		int pid = GetParamIndexByName(paramName);
 		if (pid < 0) return false;
+		if (!pointer)
+			return BindNull(paramName);
 		return BindPointer(pid, pointer, valueType);
 	}
 	inline bool BindZeroBlob(const char* paramName, int n)
