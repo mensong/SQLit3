@@ -68,6 +68,80 @@ public:
 	//:Name或@Name或$Name 带名称的占位符
 	//paramName - 只能为 :Name或@Name或$Name（需要带上前面那个符号）
 	virtual int GetParamIndexByName(const char* paramName) = 0;//失败返回小于0
+	
+	bool BindBlob(const char* paramName, const void* data, int dataLen)
+	{
+		int pid = GetParamIndexByName(paramName);
+		if (pid < 0) return false;
+		return BindBlob(pid, data, dataLen);
+	}
+	bool BindBlob64(const char* paramName, const void* data, __int64 dataLen)
+	{
+		int pid = GetParamIndexByName(paramName);
+		if (pid < 0) return false;
+		return BindBlob64(pid, data, dataLen);
+	}
+	bool BindDouble(const char* paramName, double v)
+	{
+		int pid = GetParamIndexByName(paramName);
+		if (pid < 0) return false;
+		return BindDouble(pid, v);
+	}
+	bool BindInt(const char* paramName, int v)
+	{
+		int pid = GetParamIndexByName(paramName);
+		if (pid < 0) return false;
+		return BindInt(pid, v);
+	}
+	bool BindInt64(const char* paramName, __int64 v)
+	{
+		int pid = GetParamIndexByName(paramName);
+		if (pid < 0) return false;
+		return BindInt64(pid, v);
+	}
+	bool BindNull(const char* paramName)
+	{
+		int pid = GetParamIndexByName(paramName);
+		if (pid < 0) return false;
+		return BindNull(pid);
+	}
+	bool BindText(const char* paramName, const char* text, int textLen)
+	{
+		int pid = GetParamIndexByName(paramName);
+		if (pid < 0) return false;
+		return BindText(pid, text, textLen);
+	}
+	bool BindText16(const char* paramName, const void* text, int textLen)
+	{
+		int pid = GetParamIndexByName(paramName);
+		if (pid < 0) return false;
+		return BindText16(pid, text, textLen);
+	}
+	bool BindText64(const char* paramName, const char* text, __int64 textLen, TextEncoding encoding)
+	{
+		int pid = GetParamIndexByName(paramName);
+		if (pid < 0) return false;
+		return BindText64(pid, text, textLen, encoding);
+	}
+	bool BindPointer(const char* paramName, void* pointer, const char* valueType/*="ValueList"*/)
+	{
+		int pid = GetParamIndexByName(paramName);
+		if (pid < 0) return false;
+		return BindPointer(pid, pointer, valueType);
+	}
+	bool BindZeroBlob(const char* paramName, int n)
+	{
+		int pid = GetParamIndexByName(paramName);
+		if (pid < 0) return false;
+		return BindZeroBlob(pid, n);
+	}
+	bool BindZeroBlob64(const char* paramName, __int64 n)
+	{
+		int pid = GetParamIndexByName(paramName);
+		if (pid < 0) return false;
+		return BindZeroBlob64(pid, n);
+	}
+
 	virtual bool ClearBindings() = 0;
 
 	virtual int GetColumnCount() = 0;
