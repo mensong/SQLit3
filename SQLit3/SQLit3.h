@@ -105,10 +105,12 @@ public:
 		if (pid < 0) return false;
 		return BindNull(pid);
 	}
-	inline bool BindText(const char* paramName, const char* text, int textLen)
+	inline bool BindText(const char* paramName, const char* text, int textLen = -1)
 	{
 		int pid = GetParamIndexByName(paramName);
 		if (pid < 0) return false;
+		if (textLen < 0)
+			textLen = strlen(text);
 		return BindText(pid, text, textLen);
 	}
 	inline bool BindText16(const char* paramName, const void* text, int textLen)
